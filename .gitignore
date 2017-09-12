@@ -1,0 +1,10 @@
+### Gradle Folders ###
+.gradle
+/build/
+
+### IDE's ###
+.idea
+
+### JAVA ###
+*.class
+
