@@ -1,4 +1,14 @@
 apply plugin: 'java'
 apply plugin: 'application'
+mainClassName = "java.generator.DataGenerator"
 
-mainClassName = 'hello.HelloWorld'
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'args4j:args4j-site:2.0.25'
+    compile 'args4j:args4j:2.33'
+}
+
+
