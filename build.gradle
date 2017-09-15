@@ -9,6 +9,7 @@ repositories {
 dependencies {
     compile 'args4j:args4j-site:2.0.25'
     compile 'args4j:args4j:2.33'
+    compile 'org.apache.kafka:kafka-clients:0.11.0.0'
 }
 
 
