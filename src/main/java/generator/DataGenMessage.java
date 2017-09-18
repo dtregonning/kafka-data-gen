@@ -45,6 +45,6 @@ public class DataGenMessage {
     }
 
     public String toJSON() {
-        return "{"+ "uuid:\"" + this.uuid +"\", message:\"" + this.message + "\"}\n";
+        return "{"+ "\"uuid\":\"" + this.uuid +"\", \"message\":\"" + this.message + "\"}\n";
     }
 }
