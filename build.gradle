@@ -1,6 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'application'
-mainClassName = "java.generator.DataGenerator"
+mainClassName = 'generator.DataGenerator'
 
 repositories {
     mavenCentral()
@@ -10,6 +10,14 @@ dependencies {
     compile 'args4j:args4j-site:2.0.25'
     compile 'args4j:args4j:2.33'
     compile 'org.apache.kafka:kafka-clients:0.11.0.0'
+    compile 'org.slf4j:slf4j-simple:1.7.5'
 }
 
-
+jar {
+  manifest {
+    attributes 'Main-Class' : 'generator.DataGenerator'
+  }
+  from {
+  	configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+  }
+}
