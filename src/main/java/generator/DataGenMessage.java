@@ -41,10 +41,10 @@ public class DataGenMessage {
     }
 
     public String toString() {
-        return "UUID:" + this.uuid + "\nMESSAGE:" + this.message + "\n";
+        return "UUID:" + this.uuid + "\nMESSAGE:" + this.message;
     }
 
     public String toJSON() {
-        return "{"+ "\"uuid\":\"" + this.uuid +"\", \"message\":\"" + this.message + "\"}\n";
+        return "{"+ "\"uuid\":\"" + this.uuid +"\", \"message\":\"" + this.message + "\"}";
     }
 }

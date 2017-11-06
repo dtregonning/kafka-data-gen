@@ -31,10 +31,11 @@ public class DataGenerator {
 
         for(int i = 0; i < Integer.parseInt(params.messageCount); i++) {
             byte[] event = createEvent(params);
-            //printEventToFile(params, event, i, outstream);
+           // printEventToFile(params, event, i, outstream);
+            System.out.println(event);
             try {
-                ProducerRecord<String, String> record = new ProducerRecord<>(params.topic, Integer.toString(i), new String(event));
-                producer.send(record);
+               ProducerRecord<String, String> record = new ProducerRecord<>(params.topic, Integer.toString(i), new String(event));
+               producer.send(record);
             }
             catch (Exception e) {
                 e.printStackTrace();
