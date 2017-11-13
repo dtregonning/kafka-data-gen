@@ -16,6 +16,9 @@ public class CommandLineParams {
     @Option(name="-message-delay", usage="Sets delay between each message(ms)")
     public String messageDelay;
 
+    @Option(name="-EPS", usage="Amount of events per second to send to Kafka")
+    public String eps;
+
     @Option(name="-output-file", usage="Name of output file to create or append to")
     public String outputFile;
 
