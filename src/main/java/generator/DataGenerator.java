@@ -55,7 +55,7 @@ public class DataGenerator {
         producer.close();
 
         long elapsedTime = System.currentTimeMillis() - startTime;
-        logger.info(params.messageCount + "messages created and sent in " + (elapsedTime / 1000) + " seconds");
+        logger.info(params.messageCount + " messages created and sent in " + (elapsedTime / 1000) + " seconds");
         logger.info("EPS of " + (Long.parseLong(params.messageCount)/(elapsedTime / 1000)));
     }
 
@@ -72,15 +72,21 @@ public class DataGenerator {
     public static Properties parseKafkaArguments(CommandLineParams params, Properties props) {
         try {
             props.put("bootstrap.servers", params.bootStrapServers);
-            props.put("acks", params.acks);
-            props.put("retries", params.retries);
-            props.put("batch.size", params.kafkaBatchSize);
-            props.put("linger.ms", params.kafkaLingerms);
-            props.put("buffer.memory", params.kafkaBufferMemory);
+            if(params.acks != null) { props.put("acks", params.acks);}
+            else { props.put("acks", "all"); }
+            if(params.retries != null) { props.put("retries", params.retries); }
+            else {props.put("retries", "0"); }
+            if(params.kafkaBatchSize != null) { props.put("batch.size", params.kafkaBatchSize); }
+            else { props.put("batch.size", "1000"); }
+            if(params.kafkaLingerms != null) { props.put("linger.ms", params.kafkaLingerms); }
+            else { props.put("linger.ms", "1"); }
+            if(params.kafkaBufferMemory != null) { props.put("buffer.memory", params.kafkaBufferMemory); }
+            else {props.put("buffer.memory", "16384"); }
             props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
             props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         } catch (java.lang.NullPointerException e) {
             logger.error(e.getMessage());
+            logger.error("Config Value Not provided");
         }
         return props;
     }

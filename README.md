@@ -7,7 +7,7 @@ kafka-data-gen is a gradle project and can be built using the `gradle install` c
 A jar file is created which can be used for data generation. kafka-data-gen.jar
 
 #### Examples
-java -jar build/libs/kafka-data-gen.jar -message-count 1000 -message-size 256 -topic kafka-demo 
+java -jar build/libs/kafka-data-gen.jar -message-count 100000 -message-size 256 -topic kafka-demo 
 -bootstrap.servers "localhost:9092" -acks all -kafka-retries 0 -kafka-batch-size 16384 -kafka-linger 1 -kafka-buffer-memory 33554432
 
 #### Command Line Options
