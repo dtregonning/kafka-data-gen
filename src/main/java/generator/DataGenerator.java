@@ -1,8 +1,5 @@
 package generator;
 
-import static java.nio.file.StandardOpenOption.*;
-import java.nio.file.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,27 +30,33 @@ public class DataGenerator {
         Properties props = new Properties();
         Producer<String, String> producer = new KafkaProducer<>(parseKafkaArguments(params, props));
 
+        long event_delay = 0; //500 ms - 2 events a second.
+        long secondVar = 1;
+
         if (params.eps != null && Integer.parseInt(params.eps) > 1) {
-            logger.info("EPS value found");
+            logger.info("EPS value found - Calculating required delay");
+            event_delay = (long)(secondVar/Double.parseDouble(params.eps)* 100000) ;
+            logger.info("Delay is - " + event_delay + "ms");
+
         }
 
-        //Functionality for writing to File
-        //Path p = Paths.get(params.outputFile);
-        //OutputStream outstream = new BufferedOutputStream(Files.newOutputStream(p, CREATE, APPEND));
+        long startTime = System.currentTimeMillis();
 
         for (int i = 0; i < Integer.parseInt(params.messageCount); i++) {
             byte[] event = createEvent(params);
-            // printEventToFile(params, event, i, outstream);
-            // System.out.println(event);
             try {
                 ProducerRecord<String, String> record = new ProducerRecord<>(params.topic, Integer.toString(i), new String(event));
                 producer.send(record);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            //delayNextEvent(params);
+            delayNextEvent(event_delay);
         }
         producer.close();
+
+        long elapsedTime = System.currentTimeMillis() - startTime;
+        logger.info(params.messageCount + "messages created and sent in " + (elapsedTime / 1000) + " seconds");
+        logger.info("EPS of " + (Long.parseLong(params.messageCount)/(elapsedTime / 1000)));
     }
 
     public static void parseCLIArguments(CmdLineParser parser, String[] args) {
@@ -82,11 +85,11 @@ public class DataGenerator {
         return props;
     }
 
-
     public static byte[] createEvent(CommandLineParams params) {
         DataGenMessage message = new DataGenMessage(Integer.parseInt(params.messageSize));
         String s = message.toJSON();
         byte event[] = s.getBytes();
+        logger.debug("Event created - " + s);
         return event;
     }
 
@@ -95,18 +98,11 @@ public class DataGenerator {
         return kafkaRecord;
     }
 
-    public static void printEventToFile(CommandLineParams params, byte[] event, int eventID, OutputStream outstream) throws IOException {
-        outstream.write(event, 0, event.length);
-        System.out.println("Event Created:" + eventID);
-        outstream.flush();
-    }
-}
-/*
-    public static void delayNextEvent(CommandLineParams params) {
+    public static void delayNextEvent(long eventDelay) {
         try {
-            TimeUnit.MILLISECONDS.sleep(Long.parseLong(params.messageDelay));
+            TimeUnit.MICROSECONDS.sleep(eventDelay);
         } catch (InterruptedException x) {
             System.err.println(x);
         }
     }
-  /*
+}
