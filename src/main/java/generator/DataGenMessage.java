@@ -24,22 +24,6 @@ public class DataGenMessage {
         return char_array;
     }
 
-    public UUID getUUID() {
-        return this.uuid;
-    }
-
-    public String getMessage() {
-        return this.message;
-    }
-
-    public void setUUID(UUID uuid) {
-        this.uuid = uuid;
-    }
-
-    public void setMessage(String message){
-        this.message = message;
-    }
-
     public String toString() {
         return "UUID:" + this.uuid + "\nMESSAGE:" + this.message;
     }

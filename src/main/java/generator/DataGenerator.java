@@ -35,9 +35,8 @@ public class DataGenerator {
 
         if (params.eps != null && Integer.parseInt(params.eps) > 1) {
             logger.info("EPS value found - Calculating required delay");
-            event_delay = (long)(secondVar/Double.parseDouble(params.eps)* 100000) ;
-            logger.info("Delay is - " + event_delay + "ms");
-
+            event_delay = (long)((secondVar/Double.parseDouble(params.eps)* 1000000)) ;
+            logger.info("Delay is " + event_delay + " microSeconds");
         }
 
         long startTime = System.currentTimeMillis();
