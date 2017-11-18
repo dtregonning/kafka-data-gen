@@ -12,8 +12,11 @@ public class CommandLineParams {
     @Option(name="-message-size", usage="Sets size of messages to create")
     public String messageSize;
 
-    @Option(name="-EPS", usage="Amount of events per second to send to Kafka")
+    @Option(name="-eps", usage="Amount of events per second to send to Kafka")
     public String eps;
+
+    @Option(name="-worker-thread-count", usage="Kafka buffer amount")
+    public String workerThreadCount;
 
     @Option(name="-topic", usage="Kafka Topic tp send messages to")
     public String topic;
@@ -37,7 +40,7 @@ public class CommandLineParams {
     public String kafkaBufferMemory;
 
     public void run() {
-        System.out.println("Command Line Paramaters");
+        System.out.println("Command Line Parameters");
         System.out.println("- message-count: " + messageCount);
         System.out.println("- message-size: " + messageSize);
         System.out.println("- topic: " + topic);
