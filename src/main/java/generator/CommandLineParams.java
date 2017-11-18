@@ -1,6 +1,5 @@
 package generator;
 
-import java.io.File;
 import org.kohsuke.args4j.Option;
 
 /**
@@ -13,14 +12,11 @@ public class CommandLineParams {
     @Option(name="-message-size", usage="Sets size of messages to create")
     public String messageSize;
 
-    @Option(name="-message-delay", usage="Sets delay between each message(ms)")
-    public String messageDelay;
-
-    @Option(name="-EPS", usage="Amount of events per second to send to Kafka")
+    @Option(name="-eps", usage="Amount of events per second to send to Kafka")
     public String eps;
 
-    @Option(name="-output-file", usage="Name of output file to create or append to")
-    public String outputFile;
+    @Option(name="-worker-thread-count", usage="Kafka buffer amount")
+    public String workerThreadCount;
 
     @Option(name="-topic", usage="Kafka Topic tp send messages to")
     public String topic;
@@ -44,11 +40,9 @@ public class CommandLineParams {
     public String kafkaBufferMemory;
 
     public void run() {
-        System.out.println("Command Line Paramaters");
+        System.out.println("Command Line Parameters");
         System.out.println("- message-count: " + messageCount);
         System.out.println("- message-size: " + messageSize);
-        System.out.println("- message-delay: " + messageDelay);
-        System.out.println("- file: " + outputFile);
         System.out.println("- topic: " + topic);
     }
 }
