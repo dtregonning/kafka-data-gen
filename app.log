@@ -1,0 +1,4 @@
+2017-11-20 10:49:54,644 INFO g.DataGenerator [main] Starting Kafka Data Generator
+2017-11-20 10:49:54,656 INFO g.DataGenerator [main] Parsing CLI arguments
+2017-11-20 10:49:55,674 INFO g.DataGenerator [main] 2000 messages created and sent in 1 seconds
+2017-11-20 10:49:55,674 INFO g.DataGenerator [main] Events Per Second of 2000

@@ -1,9 +1,13 @@
 package generator;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import org.apache.kafka.clients.producer.*;
 import java.util.Properties;
 
 class EPSThread implements Runnable {
+    private static Logger logger = LogManager.getLogger(EPSThread.class);
     Thread thrd;
     EPSToken epsTokenObj;
     Properties props;
@@ -18,26 +22,34 @@ class EPSThread implements Runnable {
     }
 
     public void run() {
+        logger.debug("Thread started - " + thrd.getName());
         int eps = Integer.parseInt(params.eps);
         try {
             if (thrd.getName().compareTo("RefreshTokenThread") == 0) {
                 if(eps != 0) {
+                    logger.debug("EPS value not set to 0, throttled throughput. EPS is:  " + eps);
                     int totalRuns = Integer.parseInt(params.messageCount) / eps;
                     int leftOvers = Integer.parseInt(params.messageCount) % eps;
                     for (int i = 0; i < totalRuns; i++) {
                         epsTokenObj.increaseTokens(eps);
+                        logger.debug("Tokens increased by "+  eps);
                         Thread.sleep(1000);
                     }
                     epsTokenObj.increaseTokens(leftOvers);
                     epsTokenObj.toggleFinished();
+
                 } else {
                     do {
                         Thread.sleep(1000);
+
                     } while (epsTokenObj.getMessageKey() < Integer.parseInt(params.messageCount));
                     epsTokenObj.toggleFinished();
+                    logger.info("Total Message count reached, cleaning up.");
                 }
 
             } else {
+                logger.debug("EPS value is 0, Maximum throughput");
+
                 Producer<String, String> producer = new KafkaProducer<>(props);
                 do {
                     if (eps == 0) {
@@ -58,6 +70,7 @@ class EPSThread implements Runnable {
         try {
             ProducerRecord<String, String> record = new ProducerRecord<>(params.topic, Integer.toString(epsTokenObj.getKey()), new String(event));
             producer.send(record);
+            logger.debug("Event sent" + record);
         } catch (Exception e) {
             e.printStackTrace();
         }
