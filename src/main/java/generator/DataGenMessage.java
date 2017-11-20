@@ -9,10 +9,12 @@ import java.util.Random;
 public class DataGenMessage {
     String message = null;
     UUID uuid = null;
+    int sequenceNumber = 0;
 
-    public DataGenMessage(int size) {
+    public DataGenMessage(int size, int sequenceNumber) {
         this.uuid = UUID.randomUUID();
         this.message = String.valueOf(randomizeMessage(size));
+        this.sequenceNumber = sequenceNumber;
     }
 
     private char[] randomizeMessage(int size) {
@@ -29,6 +31,6 @@ public class DataGenMessage {
     }
 
     public String toJSON() {
-        return "{"+ "\"uuid\":\"" + this.uuid +"\", \"message\":\"" + this.message + "\"}";
+        return "{"+ "\"eventKey\":\"" + this.sequenceNumber +", \"uuid\":\"" + this.uuid +"\", \"message\":\"" + this.message + "\"}";
     }
 }

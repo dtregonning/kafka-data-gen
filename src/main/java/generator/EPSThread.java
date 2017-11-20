@@ -66,18 +66,19 @@ class EPSThread implements Runnable {
     }
 
     public static void shipEvent(Producer<String, String> producer,EPSToken epsTokenObj , CommandLineParams params) {
-        byte[] event = createEvent(params);
+        int sequenceNumber = epsTokenObj.getKey();
+        byte[] event = createEvent(params, sequenceNumber);
         try {
-            ProducerRecord<String, String> record = new ProducerRecord<>(params.topic, Integer.toString(epsTokenObj.getKey()), new String(event));
+            ProducerRecord<String, String> record = new ProducerRecord<>(params.topic, Integer.toString(sequenceNumber), new String(event));
             producer.send(record);
-            logger.debug("Event sent" + record);
+            logger.info("Event sent" + record);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static byte[] createEvent(CommandLineParams params) {
-        DataGenMessage message = new DataGenMessage(Integer.parseInt(params.messageSize));
+    public static byte[] createEvent(CommandLineParams params, int eventKey) {
+        DataGenMessage message = new DataGenMessage(Integer.parseInt(params.messageSize), eventKey);
         String s = message.toJSON();
         byte event[] = s.getBytes();
         return event;
