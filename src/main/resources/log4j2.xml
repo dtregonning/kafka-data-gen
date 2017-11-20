@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="INFO">
+<Configuration status="WARN">
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
-        <File name="generator" fileName="data-gen-log.log" immediateFlush="true" append="true">
-            <PatternLayout pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        <File name="data-gen-log" fileName="data-gen.log">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
         </File>
     </Appenders>
     <Loggers>
-        <Root level="DEBUG">
+        <Logger name="generator" level="info" additivity="false">
+            <appender-ref ref="data-gen-log" level="info"/>
+        </Logger>>
+        <Root level="error">
             <AppenderRef ref="Console"/>
         </Root>
     </Loggers>

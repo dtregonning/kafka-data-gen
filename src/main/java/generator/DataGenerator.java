@@ -35,6 +35,7 @@ public class DataGenerator {
         }else {
             workers = 4;
         }
+        logger.info("Worker count configured to: " + workers);
 
         EPSToken epsToken = new EPSToken();
         EPSThread thread_01 = new EPSThread("RefreshTokenThread", epsToken, props, params);

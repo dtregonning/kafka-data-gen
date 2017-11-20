@@ -1,6 +1,10 @@
 package generator;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 class EPSToken {
+    private static Logger logger = LogManager.getLogger(EPSToken.class);
     private int tokenCount;
     private int messageKey;
     private boolean finished;
@@ -32,7 +36,12 @@ class EPSToken {
     }
 
     public synchronized int getTokenCount() { return tokenCount; }
-    public synchronized int getKey() { return ++messageKey; }
+    public synchronized int getKey() {
+        if(messageKey % 10000 == 0) {
+            logger.info(getMessageKey() + " events created and shipped");
+        }
+
+    return ++messageKey; }
     public synchronized int getMessageKey() { return messageKey; }
     public synchronized boolean getFinished() { return finished; }
 }

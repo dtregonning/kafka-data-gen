@@ -1,15 +1,17 @@
 # kafka-data-gen
 kafka-data-gen is a simple message generation tool that will create defined size events and send them to
-kafka at a specific interval or at a certain rate(Events per Second).
+kafka at a certain rate(Events per Second).
 
 #### Build
 kafka-data-gen is a gradle project and can be built using the `gradle install` command.
 A jar file is created which can be used for data generation. kafka-data-gen.jar
 
 #### Examples
-ava -jar build/libs/kafka-data-gen.jar -message-count 20000000 -message-size 256 -topic kafka-demo 
--bootstrap.servers "localhost:9092" -acks all -kafka-retries 0 -kafka-batch-size 60000 -kafka-linger 1 
--kafka-buffer-memory 33554432 -eps 0
+With EPS Throttling:
+java -jar build/libs/kafka-data-gen.jar -message-count 20000000 -message-size 256 -topic kafka-demo -bootstrap.servers "localhost:9092" -acks all -kafka-retries 0 -kafka-batch-size 60000 -kafka-linger 1 -kafka-buffer-memory 33554432 -eps 10000
+
+Unlimited EPS:
+java -jar build/libs/kafka-data-gen.jar -message-count 20000000 -message-size 256 -topic kafka-demo -bootstrap.servers "localhost:9092" -acks all -kafka-retries 0 -kafka-batch-size 60000 -kafka-linger 1 -kafka-buffer-memory 33554432 -eps 0
 
 #### Command Line Options
 
