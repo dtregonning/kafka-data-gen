@@ -1,10 +1,15 @@
 package generator;
 
+import com.sun.javafx.collections.MappingChange;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
 import org.apache.kafka.clients.producer.*;
+import org.apache.kafka.common.MetricName;
+import org.apache.kafka.common.Metric;
+
 import java.util.Properties;
+import java.util.Map;
 
 class EPSThread implements Runnable {
     private static Logger logger = LogManager.getLogger(EPSThread.class);
@@ -39,10 +44,10 @@ class EPSThread implements Runnable {
                     epsTokenObj.toggleFinished();
 
                 } else {
-                    do {
-                        Thread.sleep(1000);
-
-                    } while (epsTokenObj.getMessageKey() < Integer.parseInt(params.messageCount));
+                    epsTokenObj.increaseTokens(Integer.parseInt(params.messageCount));
+                    do{
+                        Thread.sleep(500);
+                    } while(epsTokenObj.getMessageKey() < Integer.parseInt(params.messageCount));
                     epsTokenObj.toggleFinished();
                     logger.info("Total Message count reached, cleaning up.");
                 }
@@ -52,12 +57,17 @@ class EPSThread implements Runnable {
 
                 Producer<String, String> producer = new KafkaProducer<>(props);
                 do {
-                    if (eps == 0) {
-                        shipEvent(producer, epsTokenObj, params);
-                    } else {
-                        if (epsTokenObj.takeToken()) { shipEvent(producer, epsTokenObj, params); }
-                    }
+                    if (epsTokenObj.takeToken()) { shipEvent(producer, epsTokenObj, params); }
                 } while (epsTokenObj.complete() == false);
+
+                Map<MetricName,? extends Metric> metrics = producer.metrics();
+                for (Map.Entry<MetricName, ? extends Metric> entry : metrics.entrySet()) {
+                    String name = entry.getKey().name();
+                    String group = entry.getKey().group();
+                    if(name.equalsIgnoreCase("record-send-rate")  && group.equalsIgnoreCase("producer-metrics")) {
+                        System.out.println(name + " " + group + ": " + entry.getValue().value());
+                    }
+                }
                 producer.close();
             }
         } catch (InterruptedException exc) {
@@ -71,7 +81,7 @@ class EPSThread implements Runnable {
         try {
             ProducerRecord<String, String> record = new ProducerRecord<>(params.topic, Integer.toString(sequenceNumber), new String(event));
             producer.send(record);
-            logger.info("Event sent" + record);
+            logger.debug("Event sent" + record);
         } catch (Exception e) {
             e.printStackTrace();
         }
