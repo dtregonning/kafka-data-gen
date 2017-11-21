@@ -55,8 +55,8 @@ public class DataGenerator {
         }
 
         long elapsedTime = System.currentTimeMillis() - startTime;
-        logger.info(params.messageCount + " messages created and sent in " + (elapsedTime / 1000) + " seconds");
-        logger.info("Events Per Second of " + (Long.parseLong(params.messageCount)/(elapsedTime / 1000)));
+        logger.info(epsToken.getMessageKey() + " messages created and sent in " + (elapsedTime / 1000) + " seconds");
+        logger.info("Events Per Second of " + (long)(epsToken.getMessageKey())/(elapsedTime / 1000));
     }
 
     public static Properties parseKafkaArguments(CommandLineParams params, Properties props) {
