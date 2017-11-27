@@ -46,19 +46,19 @@ class EPSThread implements Runnable {
                         Thread.sleep(500);
                     } while(epsTokenObj.getMessageKey() < Integer.parseInt(params.messageCount));
                     epsTokenObj.toggleFinished();
-                    logger.info("Total Message count reached, cleaning up.");
+                    logger.info("Total Message count reached, cleaning up program for exit.");
                 }
 
             } else if(thrd.getName().compareTo("MetricsCalculatorThread") == 0) {
                 do {
                     Thread.sleep(5000);
-                    metricsCalc.getMetrics();
+                    logger.info("Current Record Send Rate is: " + metricsCalc.getKafkaProducerMetrics("record-send-rate", "producer-metrics"));
                 } while (epsTokenObj.complete() == false);
             }
             else {
-
                 Producer<String, String> producer = new KafkaProducer<>(props);
-                metricsCalc.addProducer(producer);
+                if(!metricsCalc.addProducer(producer)) {logger.warn("Error adding producer for metrics Calculator, Metric Calculations may be incorrect" + thrd.getName()); }
+
                 do {
                     if (epsTokenObj.takeToken()) { shipEvent(producer, epsTokenObj, params); }
                 } while (epsTokenObj.complete() == false);
@@ -72,7 +72,11 @@ class EPSThread implements Runnable {
     }
 
     public static void shipEvent(Producer<String, String> producer,EPSToken epsTokenObj , CommandLineParams params) {
-        int sequenceNumber = epsTokenObj.getKey();
+        int sequenceNumber = epsTokenObj.getMessageKeyAndInc();
+
+        //TODO: Smarter Live Logging, hardcoded 10000 value. 10% of total messages?
+        if(sequenceNumber % 100000 == 0) { logger.info("Current message with sequence number: " + sequenceNumber); }
+
         byte[] event = createEvent(params, sequenceNumber);
         try {
             ProducerRecord<String, String> record = new ProducerRecord<>(params.topic, Integer.toString(sequenceNumber), new String(event));

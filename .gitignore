@@ -7,5 +7,5 @@
 
 ### JAVA ###
 *.class
-data-gen.log
+*.log
 
