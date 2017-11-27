@@ -29,7 +29,7 @@ public class DataGenerator {
 
         long startTime = System.currentTimeMillis();
 
-        int workers = 0;
+        int workers;
         if(params.workerThreadCount != null) {
             workers = Integer.parseInt(params.workerThreadCount);
         }else {
@@ -39,6 +39,10 @@ public class DataGenerator {
 
         EPSToken epsToken = new EPSToken();
         EPSThread thread_01 = new EPSThread("RefreshTokenThread", epsToken, props, params);
+        EPSThread thread_02 = new EPSThread("MetricsCalculatorThread", epsToken, props, params);
+
+
+
         EPSThread[] epsThreadArray = new EPSThread[workers];
 
         for(int i = 0; i < epsThreadArray.length; i++) {
@@ -47,6 +51,7 @@ public class DataGenerator {
         }
         try {
             thread_01.thrd.join();
+            thread_02.thrd.join();
             for(int i = 0; i < epsThreadArray.length; i++) {
                 epsThreadArray[i].thrd.join();
             }
