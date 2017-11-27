@@ -13,10 +13,11 @@ import java.util.Map;
 
 class EPSThread implements Runnable {
     private static Logger logger = LogManager.getLogger(EPSThread.class);
+    private static EPSToken epsTokenObj;
+    private static Properties props;
+    private static CommandLineParams params;
+    private static MetricsCalculator metricsCalc;
     Thread thrd;
-    EPSToken epsTokenObj;
-    Properties props;
-    CommandLineParams params;
 
     EPSThread(String name, EPSToken eps, Properties props, CommandLineParams params) {
         thrd = new Thread(this, name);
@@ -24,6 +25,7 @@ class EPSThread implements Runnable {
         this.params = params;
         this.props = props;
         thrd.start();
+        metricsCalc = new MetricsCalculator(Integer.parseInt(params.workerThreadCount));
     }
 
     public void run() {
@@ -37,13 +39,14 @@ class EPSThread implements Runnable {
                     int leftOvers = Integer.parseInt(params.messageCount) % eps;
                     for (int i = 0; i < totalRuns; i++) {
                         epsTokenObj.increaseTokens(eps);
-                        logger.debug("Tokens increased by "+  eps);
+                        logger.debug("Tokens increased by " + eps);
                         Thread.sleep(1000);
                     }
                     epsTokenObj.increaseTokens(leftOvers);
                     epsTokenObj.toggleFinished();
 
-                } else {
+                }
+                else {
                     epsTokenObj.increaseTokens(Integer.parseInt(params.messageCount));
                     do{
                         Thread.sleep(500);
@@ -52,22 +55,21 @@ class EPSThread implements Runnable {
                     logger.info("Total Message count reached, cleaning up.");
                 }
 
-            } else {
-                logger.debug("EPS value is 0, Maximum throughput");
+            } else if(thrd.getName().compareTo("MetricsCalculatorThread") == 0) {
+                do {
+                    Thread.sleep(5000);
+                    metricsCalc.getMetrics();
+                } while (epsTokenObj.complete() == false);
+            }
+            else {
 
                 Producer<String, String> producer = new KafkaProducer<>(props);
+                metricsCalc.addProducer(producer);
                 do {
                     if (epsTokenObj.takeToken()) { shipEvent(producer, epsTokenObj, params); }
                 } while (epsTokenObj.complete() == false);
 
-                Map<MetricName,? extends Metric> metrics = producer.metrics();
-                for (Map.Entry<MetricName, ? extends Metric> entry : metrics.entrySet()) {
-                    String name = entry.getKey().name();
-                    String group = entry.getKey().group();
-                    if(name.equalsIgnoreCase("record-send-rate")  && group.equalsIgnoreCase("producer-metrics")) {
-                        System.out.println(name + " " + group + ": " + entry.getValue().value());
-                    }
-                }
+
                 producer.close();
             }
         } catch (InterruptedException exc) {
@@ -81,7 +83,7 @@ class EPSThread implements Runnable {
         try {
             ProducerRecord<String, String> record = new ProducerRecord<>(params.topic, Integer.toString(sequenceNumber), new String(event));
             producer.send(record);
-            logger.debug("Event sent" + record);
+            logger.debug("Event batched" + record);
         } catch (Exception e) {
             e.printStackTrace();
         }
