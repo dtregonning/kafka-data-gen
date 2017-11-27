@@ -7,9 +7,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
 
-/**
- * Created by dtregonning on 11/21/17.
- */
 public class MetricsCalculator {
     Producer<String, String>[] producerArray;
     private static Logger logger = LogManager.getLogger(EPSThread.class);
@@ -24,10 +21,6 @@ public class MetricsCalculator {
         producerArray[arrayIndex] = producer;
         logger.info("Im here");
         arrayIndex++;
-    }
-
-    public int getArrayIndex() {
-        return arrayIndex;
     }
 
     public void getMetrics() {

@@ -1,15 +1,9 @@
 package generator;
 
-import com.sun.javafx.collections.MappingChange;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-
 import org.apache.kafka.clients.producer.*;
-import org.apache.kafka.common.MetricName;
-import org.apache.kafka.common.Metric;
-
 import java.util.Properties;
-import java.util.Map;
 
 class EPSThread implements Runnable {
     private static Logger logger = LogManager.getLogger(EPSThread.class);
