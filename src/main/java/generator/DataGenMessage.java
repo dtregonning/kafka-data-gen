@@ -31,6 +31,6 @@ public class DataGenMessage {
     }
 
     public String toJSON() {
-        return "{"+ "\"eventKey\":\"" + this.sequenceNumber +", \"uuid\":\"" + this.uuid +"\", \"message\":\"" + this.message + "\"}";
+        return "{"+ "\"eventKey\":\"" + this.sequenceNumber + "\", \"uuid\":\"" + this.uuid +"\", \"message\":\"" + this.message + "\"}";
     }
 }
