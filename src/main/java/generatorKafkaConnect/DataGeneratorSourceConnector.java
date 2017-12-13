@@ -26,9 +26,9 @@ public class DataGeneratorSourceConnector extends SourceConnector{
         topic = props.get(TOPIC_CONFIG);
 
         if (topic == null || topic.isEmpty())
-            throw new ConnectException("FileStreamSourceConnector configuration must include 'topic' setting");
-        if (topic.contains(","))
-            throw new ConnectException("FileStreamSourceConnector should only have a single topic when used as a source.");
+      //      throw new ConnectException("FileStreamSourceConnector configuration must include 'topic' setting");
+        if (topic.contains(",")){}
+        //    throw new ConnectException("FileStreamSourceConnector should only have a single topic when used as a source.");
 
     }
 
