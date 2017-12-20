@@ -43,6 +43,9 @@ public class CommandLineParams {
     @Option(name="-kafka-buffer-memory", usage="Kafka buffer amount,  default = 16384")
     public String kafkaBufferMemory;
 
+    @Option(name="-event-format", usage="event format selector,  default = json")
+    public String eventFormat;
+
     public String toString() {
         return "[Command Line Parameters]"
         + "{ message-count: " + messageCount
@@ -55,6 +58,7 @@ public class CommandLineParams {
         + ", kafka-retries: " + retries
         + ", kafka-batch-size: " + kafkaBatchSize
         + ", kafka-linger: " + kafkaLingerms
-        + ", kafka-buffer-memory: " + kafkaBufferMemory + "}";
+        + ", kafka-buffer-memory: " + kafkaBufferMemory
+        + ", event-format: " + eventFormat +  "}";
     }
 }

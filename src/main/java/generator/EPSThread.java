@@ -88,8 +88,15 @@ class EPSThread implements Runnable {
     }
 
     public static byte[] createEvent(CommandLineParams params, int eventKey) {
-        DataGenMessage message = new DataGenMessage(Integer.parseInt(params.messageSize), eventKey);
-        String s = message.toJSON();
+        String s = "";
+        if((params.eventFormat.equalsIgnoreCase("kinesis"))) {
+            KinesisFirehoseMessage message = new KinesisFirehoseMessage();
+            s = message.toString();
+        }
+        else {
+            DataGenMessage message = new DataGenMessage(Integer.parseInt(params.messageSize), eventKey);
+            s = message.toJSON();
+        }
         byte event[] = s.getBytes();
         return event;
     }

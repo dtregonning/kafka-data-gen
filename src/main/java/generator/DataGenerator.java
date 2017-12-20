@@ -48,6 +48,7 @@ public class DataGenerator {
         //Set defaults for non required params. And log printout of value default or configured
         if(params.workerThreadCount == null) { params.workerThreadCount = "4";}
         if(params.eps == null) { params.eps = "0";}
+        if(params.eventFormat == null) { params.eventFormat = "json";}
         if(params.messageSize == null) { params.messageSize = "256";}
         if(params.messageCount == null) { params.messageSize = "10000";}
         logger.info(params);
@@ -63,7 +64,7 @@ public class DataGenerator {
         * given time a message cannot be created and sent. By using tokens we can control throughput. This thread will
         * refresh tokens. Logic implemented in EPSToken().
         * MetricsCalculatorThread is responsible for periodically reporting metrics to the log file.
-        * WorkThreads - create, bacth and sent events to a Kafka topic.
+        * WorkThreads - create, batch and sent events to a Kafka topic.
         * */
         EPSThread thread_01 = new EPSThread("RefreshTokenThread", epsToken, props, params);
         EPSThread thread_02 = new EPSThread("MetricsCalculatorThread", epsToken, props, params);
