@@ -19,19 +19,24 @@ public class KinesisFirehoseMessage {
     private String streamName;
     private String operation;
     private String myID;
-
+    private final String[] awsRegions =
+        new String[]{"us-east-1","us-east-2","us-west-2","eu-west-1","eu-central-1","ap-northeast-1"};
 
     public KinesisFirehoseMessage() {
-        thread = "pool-5-thread-875";
-        time = "1035 ms";
+        Random r = new Random();
+
+
+
+        thread = "pool-" + (r.nextInt(9-0) + 0) + "-thread-" + (r.nextInt(1000-0) + 0);
+        time = (r.nextInt(9999-0) + 0) + "ms";
         timing = "MillisBehindLatest:0/1,FirehoseToS3.HintedBufferInterval:300000/1,UnknownSubOperationTime:1035/1,FirehoseToS3.ProcessRecords.Time:0/1,KinesisDataFetcher.getRecords.Time:34/1,FirehoseToS3.UsedBufferInterval:300000/1";
         timer = new KinesisFirehoseMessageTimer();
-        shardId = "shardId-000000000003";
+        shardId = "shardId-00000000000" + (r.nextInt(9-0) + 0);
         program = "AWSFirehoseToS3App";
-        marketplace = "AWSFirehoseToS3App:perfgamma:us-east-1";
+        marketplace = "AWSFirehoseToS3App:perfgamma:" + awsRegions[r.nextInt((awsRegions.length -1) - 0) + 0];
         startTime = "1460404880.168";
         endTime = "Mon, 11 Apr 2016 20:01:20 UTC";
-        host = "4631@ip-10-0-192-45";
+        host = (r.nextInt(5000-0) + 0) + "@ip-10-0-192-" +  (r.nextInt(256-0) + 0);
         streamName = "406183408373_durabilityfirehosetoredshiftcanary_1441486183619";
         operation = "ProcessTask";
         myID = "44113";
