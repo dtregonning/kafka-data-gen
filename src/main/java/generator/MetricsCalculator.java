@@ -1,19 +1,3 @@
-/*
- * Copyright 2017 Splunk, Inc..
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package generator;
 
 import org.apache.kafka.clients.producer.*;
@@ -25,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.Map;
 
 /**
- * MetricsCalculator is a class responsible for producing consolidated metric counts from multiple threads and
+ * MetricsCalculator is responsible for producing consolidated metric counts from multiple threads and
  * returning a string and metric based on the parameter sent through.
 
  * @author      Don Tregonning (dtregonning)
@@ -33,17 +17,12 @@ import java.util.Map;
  * @since       1.0
  */
 public class MetricsCalculator {
-    /** Single Log4J Logger for class. */
-    private static Logger logger = LogManager.getLogger(EPSThread.class);
-
-    /** Array of Kafka Producers to track and return metrics for. */
-    protected static Producer<String, String>[] producerArray;
-
-    /** Current index value for the producerArray */
-    private static int producerArrayIndex = 0;
+    private static Logger logger = LogManager.getLogger(EPSThread.class);    // Single Log4J Logger for class.
+    protected static Producer<String, String>[] producerArray; // Array of Kafka Producers to track and return metrics for.
+    private static int producerArrayIndex = 0; // Current index value for the producerArray 
 
     /**
-     * Constructor implements the static array producerArray with the correct size based on the configurable
+     * Creates a MetricsCalculator. On creation the implements producerArray with the correct size based on the configurable
      * commandline parameter CommandLineParams.workerThreadCount.
      *
      * @param workerThreadCount       the amount of worker threads configured within kafka-data-gen
@@ -75,6 +54,7 @@ public class MetricsCalculator {
         }
           return true;
     }
+    
     /**
      * method used for fetching metrics from the following
      * https://docs.confluent.io/current/kafka/monitoring.html#producer-metrics.
