@@ -46,6 +46,9 @@ public class CommandLineParams {
     @Option(name="-event-format", usage="event format selector,  default = json")
     public String eventFormat;
 
+    @Option(name="-output-stdout", usage="output to STDOUT,  default = true")
+    public String outputToStdout;
+
     public String toString() {
         return "[Command Line Parameters]"
         + "{ message-count: " + messageCount
@@ -59,6 +62,8 @@ public class CommandLineParams {
         + ", kafka-batch-size: " + kafkaBatchSize
         + ", kafka-linger: " + kafkaLingerms
         + ", kafka-buffer-memory: " + kafkaBufferMemory
-        + ", event-format: " + eventFormat +  "}";
+        + ", event-format: " + eventFormat
+        + ", output-stdout: " + outputToStdout
+        +  "}";
     }
 }

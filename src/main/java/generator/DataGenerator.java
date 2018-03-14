@@ -39,12 +39,14 @@ public class DataGenerator {
             System.exit(2);
         }
 
-        // Check for required parameters
-        if(params.bootStrapServers == null || params.topic == null){
-            logger.error("Missing required commandline parameter - quiting kafka-data-gen - Exit Status 1");
-            System.exit(1);
-        }
+        if (params.outputToStdout == "false") {
+            // Check for required parameters
+            if (params.bootStrapServers == null || params.topic == null) {
+                logger.error("Missing required commandline parameter - quiting kafka-data-gen - Exit Status 1");
+                System.exit(1);
+            }
 
+        }
         //Set defaults for non required params. And log printout of value default or configured
         if(params.workerThreadCount == null) { params.workerThreadCount = "4";}
         if(params.eps == null) { params.eps = "0";}

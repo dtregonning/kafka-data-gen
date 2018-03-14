@@ -5,6 +5,13 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 
+/**
+ * KinessiFirehoseMessage is a class responsible is a class object which structures and represents the
+
+ * @author      Don Tregonning (dtregonning)
+ * @version     1.0
+ * @since       1.0
+ */
 public class KinesisFirehoseMessage {
     private String thread;
     private String time;

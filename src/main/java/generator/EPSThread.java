@@ -38,7 +38,6 @@ class EPSThread implements Runnable {
                     }
                     epsTokenObj.increaseTokens(leftOvers);
                     epsTokenObj.toggleFinished();
-
                 }
                 else {
                     epsTokenObj.increaseTokens(Integer.parseInt(params.messageCount));
@@ -50,21 +49,35 @@ class EPSThread implements Runnable {
                 }
 
             } else if(thrd.getName().compareTo("MetricsCalculatorThread") == 0) {
-                do {
-                    Thread.sleep(5000);
-                    logger.info("Current Record Send Rate is: " + metricsCalc.getKafkaProducerMetrics("record-send-rate", "producer-metrics"));
-                } while (epsTokenObj.complete() == false);
+                if(Boolean.parseBoolean(params.outputToStdout) != true) {
+                    do {
+                        Thread.sleep(5000);
+                        logger.info("Current Record Send Rate is: " + metricsCalc.getKafkaProducerMetrics("record-send-rate", "producer-metrics"));
+                    } while (epsTokenObj.complete() == false);
+                }
             }
             else {
-                Producer<String, String> producer = new KafkaProducer<>(props);
-                if(!metricsCalc.addProducer(producer)) {logger.warn("Error adding producer for metrics Calculator, Metric Calculations may be incorrect" + thrd.getName()); }
+                if(Boolean.parseBoolean(params.outputToStdout) == true) {
+                    do {
+                        if (epsTokenObj.takeToken()) {
+                            shipEvent(epsTokenObj, params);
+                        }
+                    } while (epsTokenObj.complete() == false);
+                }
+                else {
+                    Producer<String, String> producer = new KafkaProducer<>(props);
+                    if (!metricsCalc.addProducer(producer)) {
+                        logger.warn("Error adding producer for metrics Calculator, Metric Calculations may be incorrect" + thrd.getName());
+                    }
 
-                do {
-                    if (epsTokenObj.takeToken()) { shipEvent(producer, epsTokenObj, params); }
-                } while (epsTokenObj.complete() == false);
+                    do {
+                        if (epsTokenObj.takeToken()) {
+                            shipEvent(producer, epsTokenObj, params);
+                        }
+                    } while (epsTokenObj.complete() == false);
 
-
-                producer.close();
+                    producer.close();
+                }
             }
         } catch (InterruptedException exc) {
             System.out.println("Thread Interrupted");
@@ -86,6 +99,21 @@ class EPSThread implements Runnable {
             e.printStackTrace();
         }
     }
+
+    public static void shipEvent(EPSToken epsTokenObj , CommandLineParams params) {
+        int sequenceNumber = epsTokenObj.getMessageKeyAndInc();
+
+        if(sequenceNumber % 100000 == 0) { logger.info("Current message with sequence number: " + sequenceNumber); }
+
+        byte[] event = createEvent(params, sequenceNumber);
+        try {
+            String s = new String(event);
+            System.out.println(s);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public static byte[] createEvent(CommandLineParams params, int eventKey) {
         String s = "";
