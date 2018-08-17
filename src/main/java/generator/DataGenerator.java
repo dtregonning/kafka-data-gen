@@ -53,6 +53,9 @@ public class DataGenerator {
         if(params.eventFormat == null) { params.eventFormat = "json";}
         if(params.messageSize == null) { params.messageSize = "256";}
         if(params.messageCount == null) { params.messageSize = "10000";}
+        if(params.includeKafkaHeaders == null) { params.includeKafkaHeaders = "false";}
+        if(params.headerGenProfile == null) { params.headerGenProfile = "-1";}
+
         logger.info(params);
 
         //Create and configure Kafka Producer variables. Store in Properties object

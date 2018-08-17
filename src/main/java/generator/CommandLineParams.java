@@ -49,6 +49,12 @@ public class CommandLineParams {
     @Option(name="-output-stdout", usage="output to STDOUT,  default = true")
     public String outputToStdout;
 
+    @Option(name="-generate-kafka-headers", usage="Will generate kafka headers for testing,  default = false")
+    public String includeKafkaHeaders;
+
+    @Option(name="-header-gen-profile", usage="Will cause a different makeup of headers, (0) - Fully randomized source, sourcetype, host")
+    public String headerGenProfile;
+
     public String toString() {
         return "[Command Line Parameters]"
         + "{ message-count: " + messageCount
@@ -64,6 +70,8 @@ public class CommandLineParams {
         + ", kafka-buffer-memory: " + kafkaBufferMemory
         + ", event-format: " + eventFormat
         + ", output-stdout: " + outputToStdout
+        + ", include-kafka-headers: " + includeKafkaHeaders
+        + ", header-gen-profile" +  headerGenProfile
         +  "}";
     }
 }

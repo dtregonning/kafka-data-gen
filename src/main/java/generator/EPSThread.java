@@ -1,9 +1,11 @@
 package generator;
 
+import org.apache.kafka.common.header.Headers;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.kafka.clients.producer.*;
 import java.util.Properties;
+import java.util.Random;
 
 class EPSThread implements Runnable {
     private static Logger logger = LogManager.getLogger(EPSThread.class);
@@ -93,11 +95,73 @@ class EPSThread implements Runnable {
         byte[] event = createEvent(params, sequenceNumber);
         try {
             ProducerRecord<String, String> record = new ProducerRecord<>(params.topic, Integer.toString(sequenceNumber), new String(event));
-            producer.send(record);
+
+            if(Boolean.parseBoolean(params.includeKafkaHeaders) == true)
+                includeKafkaHeaders(record, sequenceNumber);
+
             logger.debug("Event batched" + record);
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static ProducerRecord<String, String> includeKafkaHeaders(ProducerRecord<String, String> record, int sequenceNumber) {
+        Random random = new Random();
+        //same header values
+        if(Integer.parseInt(params.headerGenProfile) == 0) {
+            record.headers()
+                    .add("splunk.header.index", "header_index".getBytes())
+                    .add("splunk.header.host", "header_host".getBytes())
+                    .add("splunk.header.source", "header_source".getBytes())
+                    .add("splunk.header.sourcetype", "splunk:kafka:headers".getBytes());
+        }
+
+        // completely random headers
+        else if(Integer.parseInt(params.headerGenProfile) == 1) {
+            String random_host = "splunk_host" + random.nextInt();
+            String random_source = "splunk_source" + random.nextInt();
+            String random_sourcetype = "splunk_sourcetype" + random.nextInt();
+
+            record.headers()
+                    .add("splunk.header.index", "header_index".getBytes())
+                    .add("splunk.header.host", random_host.getBytes())
+                    .add("splunk.header.source", random_source.getBytes())
+                    .add("splunk.header.sourcetype", random_sourcetype.getBytes());
+        }
+
+        // 1 header alternating randomly
+        else if(Integer.parseInt(params.headerGenProfile) == 2) {
+            String random_source = "";
+            if(sequenceNumber % 100 == 0) {
+                random_source = "splunk_source" + random.nextInt();
+            }
+
+            record.headers()
+                    .add("splunk.header.index", "header_index".getBytes())
+                    .add("splunk.header.host", "header_host".getBytes())
+                    .add("splunk.header.source", random_source.getBytes())
+                    .add("splunk.header.sourcetype", "splunk:kafka:headers".getBytes());
+        }
+
+        //with extra headers
+        else if(Integer.parseInt(params.headerGenProfile) == 3) {
+
+            record.headers()
+                    .add("splunk.header.index", "header_index".getBytes())
+                    .add("splunk.header.host", "header_host".getBytes())
+                    .add("splunk.header.source", "header_source".getBytes())
+                    .add("splunk.header.sourcetype", "splunk:kafka:headers".getBytes())
+                    .add("random_header_1", "random_header_1".getBytes())
+                    .add("random_header_2", "random_header_2".getBytes());
+        }
+        else if(Integer.parseInt(params.headerGenProfile) == -1) {
+            return record;
+        }
+        else {
+            logger.info("Incorrect ");
+        }
+        System.out.println(record);
+        return record;
     }
 
     public static void shipEvent(EPSToken epsTokenObj , CommandLineParams params) {
