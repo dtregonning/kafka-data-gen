@@ -99,6 +99,7 @@ class EPSThread implements Runnable {
             if(Boolean.parseBoolean(params.includeKafkaHeaders) == true)
                 includeKafkaHeaders(record, sequenceNumber);
 
+            producer.send(record);
             logger.debug("Event batched" + record);
         } catch (Exception e) {
             e.printStackTrace();
@@ -177,7 +178,6 @@ class EPSThread implements Runnable {
             e.printStackTrace();
         }
     }
-
 
     public static byte[] createEvent(CommandLineParams params, int eventKey) {
         String s = "";
