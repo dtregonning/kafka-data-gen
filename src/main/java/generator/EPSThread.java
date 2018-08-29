@@ -14,6 +14,7 @@ class EPSThread implements Runnable {
     private static CommandLineParams params;
     private static MetricsCalculator metricsCalc;
     Thread thrd;
+    private static int counter = 0;
 
     EPSThread(String name, EPSToken eps, Properties props, CommandLineParams params) {
         thrd = new Thread(this, name);
@@ -98,7 +99,7 @@ class EPSThread implements Runnable {
 
             if(Boolean.parseBoolean(params.includeKafkaHeaders) == true)
                 includeKafkaHeaders(record, sequenceNumber);
-
+            System.out.println(record);
             producer.send(record);
             logger.debug("Event batched" + record);
         } catch (Exception e) {
@@ -111,10 +112,10 @@ class EPSThread implements Runnable {
         //same header values
         if(Integer.parseInt(params.headerGenProfile) == 0) {
             record.headers()
-                    .add("splunk.header.index", "header_index".getBytes())
-                    .add("splunk.header.host", "header_host".getBytes())
-                    .add("splunk.header.source", "header_source".getBytes())
-                    .add("splunk.header.sourcetype", "splunk:kafka:headers".getBytes());
+                    .add("header_index", "header_index".getBytes())
+                    .add("header_host", "header_host".getBytes())
+                    .add("header_source", "header_source".getBytes())
+                    .add("header_sourcetype", "splunk:kafka:headers".getBytes());
         }
 
         // completely random headers
@@ -124,10 +125,10 @@ class EPSThread implements Runnable {
             String random_sourcetype = "splunk_sourcetype" + random.nextInt();
 
             record.headers()
-                    .add("splunk.header.index", "header_index".getBytes())
-                    .add("splunk.header.host", random_host.getBytes())
-                    .add("splunk.header.source", random_source.getBytes())
-                    .add("splunk.header.sourcetype", random_sourcetype.getBytes());
+                    .add("header_index", "header_index".getBytes())
+                    .add("header_host", random_host.getBytes())
+                    .add("header_source", random_source.getBytes())
+                    .add("header_sourcetype", random_sourcetype.getBytes());
         }
 
         // 1 header alternating randomly
@@ -138,30 +139,73 @@ class EPSThread implements Runnable {
             }
 
             record.headers()
-                    .add("splunk.header.index", "header_index".getBytes())
-                    .add("splunk.header.host", "header_host".getBytes())
-                    .add("splunk.header.source", random_source.getBytes())
-                    .add("splunk.header.sourcetype", "splunk:kafka:headers".getBytes());
+                    .add("header_index", "header_index".getBytes())
+                    .add("header_host", "header_host".getBytes())
+                    .add("header_source", random_source.getBytes())
+                    .add("header_sourcetype", "splunk:kafka:headers".getBytes());
         }
 
         //with extra headers
         else if(Integer.parseInt(params.headerGenProfile) == 3) {
 
             record.headers()
-                    .add("splunk.header.index", "header_index".getBytes())
-                    .add("splunk.header.host", "header_host".getBytes())
-                    .add("splunk.header.source", "header_source".getBytes())
-                    .add("splunk.header.sourcetype", "splunk:kafka:headers".getBytes())
+                    .add("header_index", "header_index".getBytes())
+                    .add("header_host", "header_host_profile_3".getBytes())
+                    .add("header_source", "header_source_profile_3".getBytes())
+                    .add("header_sourcetype", "splunk:kafka:headers:profile_3".getBytes())
                     .add("random_header_1", "random_header_1".getBytes())
                     .add("random_header_2", "random_header_2".getBytes());
         }
+
+        else if(Integer.parseInt(params.headerGenProfile) == 4) {
+
+            record.headers()
+                    .add("header_index", "header_index".getBytes())
+                    .add("header_host", "header_host_profile_3".getBytes())
+                    .add("header_source", "header_source_profile_3".getBytes())
+                    .add("header_sourcetype", "splunk:kafka:headers:profile_3".getBytes())
+                    .add("java -jar build/libs/kafka-data-gen.jar -message-count 100000 -message-size 256 -topic kafka-demo-header-7 -bootstrap.servers \"localhost:9092\" -acks all -kafka-retries 0 -kafka-batch-size 60000 -kafka-linger 1 -kafka-buffer-memory 33554432 -eps 500 -generate-kafka-headers true -header-gen-profile 4" +
+                     "", "random_header_1".getBytes())
+                    .add("random_header_2", "random_header_2".getBytes());
+        }
+
+        else if(Integer.parseInt(params.headerGenProfile) == 5) {
+            if(sequenceNumber % 50 == 0) {
+                counter++;
+            }
+
+            record.headers()
+                    .add("header_index", ("header_index").getBytes())
+                    .add("header_host", ("header_host_profile" + counter).getBytes())
+                    .add("header_source", ("header_source_profile" + counter).getBytes())
+                    .add("header_sourcetype", ("splunk:kafka:headers:profile" + counter).getBytes());
+        }
+        else if(Integer.parseInt(params.headerGenProfile) == 6) {
+            int counter = 1;
+            if(sequenceNumber % 2 == 0) {
+                counter = 2;
+            }
+            if(sequenceNumber % 3 == 0) {
+                counter = 3;
+            }
+
+            if(sequenceNumber % 4 == 0) {
+                counter = 4;
+            }
+
+            record.headers()
+                    .add("header_index", ("header_index").getBytes())
+                    .add("header_host", ("header_host_profile" + counter).getBytes())
+                    .add("header_source", ("header_source_profile" + counter).getBytes())
+                    .add("header_sourcetype", ("splunk:kafka:headers:profile" + counter).getBytes());
+        }
+
         else if(Integer.parseInt(params.headerGenProfile) == -1) {
             return record;
         }
         else {
             logger.info("Incorrect ");
         }
-        System.out.println(record);
         return record;
     }
 
