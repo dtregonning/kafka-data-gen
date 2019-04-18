@@ -39,28 +39,46 @@ public class DataGenerator {
             System.exit(2);
         }
 
-        if (params.outputToStdout == "false") {
-            // Check for required parameters
-            if (params.bootStrapServers == null || params.topic == null) {
-                logger.error("Missing required commandline parameter - quiting kafka-data-gen - Exit Status 1");
-                System.exit(1);
-            }
-
+        if (params.outputToEventhubs == params.outputToKafka) {
+            logger.error("Output to Kafka and Output to EventHubs can't be enabled/disabled at the same time");
+            System.exit(1);
         }
+
         //Set defaults for non required params. And log printout of value default or configured
         if(params.workerThreadCount == null) { params.workerThreadCount = "4";}
         if(params.eps == null) { params.eps = "0";}
         if(params.eventFormat == null) { params.eventFormat = "json";}
         if(params.messageSize == null) { params.messageSize = "256";}
         if(params.messageCount == null) { params.messageSize = "10000";}
-        if(params.includeKafkaHeaders == null) { params.includeKafkaHeaders = "false";}
-        if(params.headerGenProfile == null) { params.headerGenProfile = "-1";}
+
+        Properties props = new Properties();
+
+        if (Boolean.parseBoolean(params.outputToKafka) == true) {
+            // Check for required parameters
+            if (params.bootStrapServers == null || params.topic == null) {
+                logger.error("Missing required commandline parameter - quiting kafka-data-gen - Exit Status 1");
+                System.exit(1);
+            }
+
+            if(params.includeKafkaHeaders == null) { params.includeKafkaHeaders = "false";}
+            if(params.headerGenProfile == null) { params.headerGenProfile = "-1";}
+            props = parseKafkaArguments(params, props);
+
+        }
+        if (Boolean.parseBoolean(params.outputToEventhubs) ==  true) {
+            // Check for required parameters
+            if (params.eventHubName == null || params.eventHubNameSpace == null
+                    || params.eventHubSaskey == null  || params.eventHubSaskeyname == null) {
+                logger.error("Missing required commandline parameters for eventhub - quiting kafka-data-gen - Exit Status 1");
+                System.exit(1);
+            }
+            System.out.println("Configuring EventHubs Props");
+            props = parseEventHubsArguments(params, props);
+        }
 
         logger.info(params);
 
         //Create and configure Kafka Producer variables. Store in Properties object
-        Properties props = new Properties();
-        props = parseKafkaArguments(params, props);
 
         EPSToken epsToken = new EPSToken();
 
@@ -97,6 +115,19 @@ public class DataGenerator {
         logger.info(epsToken.getMessageKey() + " messages created and sent in " + (elapsedTime / 1000) + " seconds");
         logger.info("Events Per Second of " + (long)(epsToken.getMessageKey())/(elapsedTime / 1000));
         logger.info("Program run and complete without interruption");
+    }
+
+    public static Properties parseEventHubsArguments(CommandLineParams params, Properties props) {
+        try {
+            props.put("eventhub.name", params.eventHubName);
+            props.put("eventhub.namespace", params.eventHubNameSpace);
+            props.put("eventhub.saskeyname", params.eventHubSaskeyname);
+            props.put("eventhub.saskey", params.eventHubSaskey);
+        } catch (java.lang.NullPointerException e) {
+            logger.error(e.getMessage());
+            logger.error("Config Value Not provided");
+        }
+        return props;
     }
 
     public static Properties parseKafkaArguments(CommandLineParams params, Properties props) {

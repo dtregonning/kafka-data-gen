@@ -77,7 +77,9 @@ public class MetricsCalculator {
                 String name = entry.getKey().name();
                 String group = entry.getKey().group();
                 if (name.equalsIgnoreCase(metricName) && group.equalsIgnoreCase(metricGroup)) {
-                    consolidatedMetricValue += entry.getValue().value();
+                    Object metricValue = entry.getValue().metricValue();
+                    if (metricValue instanceof Double)
+                        consolidatedMetricValue += (Double)metricValue;
                 }
             }
         }

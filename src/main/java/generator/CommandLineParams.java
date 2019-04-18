@@ -22,6 +22,29 @@ public class CommandLineParams {
     @Option(name="-worker-thread-count", usage="Event generating worker threads, default = 4")
     public String workerThreadCount;
 
+    @Option(name="-output-kafka", usage="output to Kafka,  default = true")
+    public String outputToKafka;
+
+    @Option(name="-output-stdout", usage="output to STDOUT,  default = true")
+    public String outputToStdout;
+
+    @Option(name="-output-eventhubs", usage="output to Eventhubs,  default = false")
+    public String outputToEventhubs;
+
+    //EventHub Specific Options
+    @Option(name="-eventhub.name", usage="EventHub name")
+    public String eventHubName;
+
+    @Option(name="-eventhub.namespace", usage="EventHub namespace name")
+    public String eventHubNameSpace;
+
+    @Option(name="-eventhub.saskeyname", usage="Sas Key name used for EventHubs")
+    public String eventHubSaskeyname;
+
+    @Option(name="-eventhub.saskey", usage="Sas Key used for EventHubs")
+    public String eventHubSaskey;
+
+    //Kafka Specific Options
     @Option(name="-topic", usage="(Required)Kafka Topic to send messages to")
     public String topic;
 
@@ -46,9 +69,6 @@ public class CommandLineParams {
     @Option(name="-event-format", usage="event format selector,  default = json")
     public String eventFormat;
 
-    @Option(name="-output-stdout", usage="output to STDOUT,  default = true")
-    public String outputToStdout;
-
     @Option(name="-generate-kafka-headers", usage="Will generate kafka headers for testing,  default = false")
     public String includeKafkaHeaders;
 
@@ -58,6 +78,10 @@ public class CommandLineParams {
     public String toString() {
         return "[Command Line Parameters]"
         + "{ message-count: " + messageCount
+        + ", eventhub.name: " + eventHubName
+        + ", eventhub.namespace: " + eventHubNameSpace
+        + ", eventhub.saskey: " + eventHubSaskey
+        + ", message-size: " + messageSize
         + ", message-size: " + messageSize
         + ", topic : " + topic
         + ", eps: " + eps
@@ -70,6 +94,7 @@ public class CommandLineParams {
         + ", kafka-buffer-memory: " + kafkaBufferMemory
         + ", event-format: " + eventFormat
         + ", output-stdout: " + outputToStdout
+        + ", output-eventhubs: " + outputToEventhubs
         + ", include-kafka-headers: " + includeKafkaHeaders
         + ", header-gen-profile" +  headerGenProfile
         +  "}";

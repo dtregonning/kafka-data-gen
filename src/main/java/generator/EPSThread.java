@@ -1,11 +1,25 @@
 package generator;
 
-import org.apache.kafka.common.header.Headers;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.kafka.clients.producer.*;
 import java.util.Properties;
 import java.util.Random;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.microsoft.azure.eventhubs.ConnectionStringBuilder;
+import com.microsoft.azure.eventhubs.EventData;
+import com.microsoft.azure.eventhubs.EventHubClient;
+import com.microsoft.azure.eventhubs.EventHubException;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 class EPSThread implements Runnable {
     private static Logger logger = LogManager.getLogger(EPSThread.class);
@@ -51,7 +65,7 @@ class EPSThread implements Runnable {
                     logger.info("Total Message count reached, cleaning up program for exit.");
                 }
 
-            } else if(thrd.getName().compareTo("MetricsCalculatorThread") == 0) {
+            } else if(thrd.getName().compareTo("MetricsCalculatorThread") == 0 && Boolean.parseBoolean(params.outputToKafka) == true) {
                 if(Boolean.parseBoolean(params.outputToStdout) != true) {
                     do {
                         Thread.sleep(5000);
@@ -60,34 +74,66 @@ class EPSThread implements Runnable {
                 }
             }
             else {
-                if(Boolean.parseBoolean(params.outputToStdout) == true) {
-                    do {
-                        if (epsTokenObj.takeToken()) {
-                            shipEvent(epsTokenObj, params);
+                if(Boolean.parseBoolean(params.outputToKafka) == true) {
+                    if (Boolean.parseBoolean(params.outputToStdout) == true) {
+                        do {
+                            if (epsTokenObj.takeToken()) {
+                                shipEvent(epsTokenObj, params);
+                            }
+                        } while (epsTokenObj.complete() == false);
+                    } else {
+                        Producer<String, String> producer = new KafkaProducer<>(props);
+                        if (!metricsCalc.addProducer(producer)) {
+                            logger.warn("Error adding producer for metrics Calculator, Metric Calculations may be incorrect" + thrd.getName());
                         }
-                    } while (epsTokenObj.complete() == false);
-                }
-                else {
-                    Producer<String, String> producer = new KafkaProducer<>(props);
-                    if (!metricsCalc.addProducer(producer)) {
-                        logger.warn("Error adding producer for metrics Calculator, Metric Calculations may be incorrect" + thrd.getName());
+
+                        do {
+                            if (epsTokenObj.takeToken()) {
+                                shipEvent(producer, epsTokenObj, params);
+                            }
+                        } while (epsTokenObj.complete() == false);
+
+                        producer.close();
                     }
+                }
+                else if(Boolean.parseBoolean(params.outputToEventhubs) == true){
+                    final ConnectionStringBuilder connStr = new ConnectionStringBuilder()
+                            .setNamespaceName(props.getProperty("eventhub.namespace"))
+                            .setEventHubName(props.getProperty("eventhub.name"))
+                            .setSasKeyName(props.getProperty("eventhub.saskeyname"))
+                            .setSasKey(props.getProperty("eventhub.saskey"));
+                    logger.info(connStr);
+
+
+                    final Gson gson = new GsonBuilder().create();
+
+                    // The Executor handles all asynchronous tasks and this is passed to the EventHubClient instance.
+                    // This enables the user to segregate their thread pool based on the work load.
+                    // This pool can then be shared across multiple EventHubClient instances.
+                    // The following sample uses a single thread executor, as there is only one EventHubClient instance,
+                    // handling different flavors of ingestion to Event Hubs here.
+                    final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(4);
+
+                    // Each EventHubClient instance spins up a new TCP/SSL connection, which is expensive.
+                    // It is always a best practice to reuse these instances. The following sample shows this.
+                    final EventHubClient ehClient = EventHubClient.createSync(connStr.toString(), executorService);
 
                     do {
                         if (epsTokenObj.takeToken()) {
-                            shipEvent(producer, epsTokenObj, params);
+                            shipEventhubEvent(ehClient, epsTokenObj, params);
                         }
                     } while (epsTokenObj.complete() == false);
 
-                    producer.close();
+                    ehClient.closeSync();
+                    executorService.shutdown();
                 }
             }
-        } catch (InterruptedException exc) {
+        } catch (InterruptedException | EventHubException | IOException exc ) {
             System.out.println("Thread Interrupted");
         }
     }
 
-    public static void shipEvent(Producer<String, String> producer,EPSToken epsTokenObj , CommandLineParams params) {
+    public static void shipEvent(Producer<String, String> producer, EPSToken epsTokenObj, CommandLineParams params) {
         int sequenceNumber = epsTokenObj.getMessageKeyAndInc();
 
         //TODO: Smarter Live Logging, hardcoded 10000 value. 10% of total messages?
@@ -101,6 +147,40 @@ class EPSThread implements Runnable {
                 includeKafkaHeaders(record, sequenceNumber);
             producer.send(record);
             logger.debug("Event batched" + record);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void shipEventhubEvent(EventHubClient ehClient, EPSToken epsTokenObj , CommandLineParams params) {
+        try {
+            int sequenceNumber = epsTokenObj.getMessageKeyAndInc();
+            if(sequenceNumber % 100000 == 0) { logger.info("Current message with sequence number: " + sequenceNumber); }
+            byte[] event = createEvent(params, sequenceNumber);
+
+            //byte[] payloadBytes = gson.toJson(payload).getBytes(Charset.defaultCharset());
+            EventData sendEvent = EventData.create(event);
+
+        // Send - not tied to any partition
+        // Event Hubs service will round-robin the events across all Event Hubs partitions.
+        // This is the recommended & most reliable way to send to Event Hubs.
+            ehClient.sendSync(sendEvent);
+
+            logger.debug("Event batched" + event.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void shipEvent(EPSToken epsTokenObj , CommandLineParams params) {
+        int sequenceNumber = epsTokenObj.getMessageKeyAndInc();
+
+        if(sequenceNumber % 100000 == 0) { logger.info("Current message with sequence number: " + sequenceNumber); }
+
+        byte[] event = createEvent(params, sequenceNumber);
+        try {
+            String s = new String(event);
+            System.out.println(s);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -208,19 +288,7 @@ class EPSThread implements Runnable {
         return record;
     }
 
-    public static void shipEvent(EPSToken epsTokenObj , CommandLineParams params) {
-        int sequenceNumber = epsTokenObj.getMessageKeyAndInc();
 
-        if(sequenceNumber % 100000 == 0) { logger.info("Current message with sequence number: " + sequenceNumber); }
-
-        byte[] event = createEvent(params, sequenceNumber);
-        try {
-            String s = new String(event);
-            System.out.println(s);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public static byte[] createEvent(CommandLineParams params, int eventKey) {
         String s = "";
